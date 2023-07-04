@@ -16,6 +16,7 @@ for node in topology:
         if(neighbor.pointed):
             comm.send(utils.convertDistancesToString(node.distances), neighbor.node.id)
 
+
 if(rank == 9):
     while(True):
         test = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
