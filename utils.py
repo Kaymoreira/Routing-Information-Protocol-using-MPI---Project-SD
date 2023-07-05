@@ -120,7 +120,7 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
                         myNode = nodeTop
                         break
                         
-                res.append(classes.Distance(myNode, distance))
+                res.append(classes.Distance(myNode, int(distance)))
 
                 objectStarted = False
                 node = ""
@@ -146,3 +146,13 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
 
 
     return res
+
+
+def sendDistancesToNeighbors(neighbors: list[classes.Neighbor], distances: list[classes.Distance], comm, directionReversed: bool):
+    for neighbor in neighbors:
+        condition = neighbor.pointed
+        if(directionReversed):
+            condition = not neighbor.pointed
+            
+        if(condition):
+            comm.send(convertDistancesToString(distances), neighbor.node.id)
