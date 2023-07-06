@@ -3,7 +3,7 @@ from threading import Timer
 class Distance:
     node = None 
     distance = -1
-
+    
     # estamos definindo a classe Distance com duas variáveis de instância: node e distance
     # O método __init__ é o construtor da classe Distance. Ele é chamado quando um objeto Distance é criado. 
     # Esse método recebe dois argumentos: node (representando o nó de destino) e distance (representando a distância até o nó de destino). 

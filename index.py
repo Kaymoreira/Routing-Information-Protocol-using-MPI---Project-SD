@@ -29,9 +29,12 @@ mainNode = topology[0]
 currentNode = utils.getCurrentNode(topology, rank)
 
 # Verificando se o nó atual não existe na topologia
+# Verificamos se o currentNode é None (ou seja, se o nó atual não existe na topologia). 
+# Se isso for verdadeiro, encerramos o programa usando sys.exit()
 if currentNode is None:
     sys.exit()
-
+# Definimos a função communicationsStopped(), que é chamada quando a comunicação é interrompida. 
+# Essa função fala sobre as distâncias do nó atual e imprime informações relevantes.
 def communicationsStopped():
     """
     Função chamada quando a comunicação é interrompida.
@@ -53,6 +56,8 @@ if rank == mainNode.id:
     # Reinicia o temporizador
     myTimer.resetTimer()
 
+# Em um loop infinito, recebemos mensagens de qualquer fonte e com qualquer tag usando comm.recv(). 
+# Em seguida, convertemos a mensagem recebida em uma lista de distâncias usando convertStringToDistances() do módulo utils
 while True:
     # Recebe uma mensagem de qualquer processo
     message = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
@@ -61,6 +66,10 @@ while True:
     newDistances = utils.convertStringToDistances(message, topology)
     
     # Atualiza as distâncias do nó atual com base nas novas distâncias recebidas
+    # Se os IDs forem iguais, significa que a distância recebida está relacionada ao próprio nó atual. 
+    # Nesse caso, não precisamos realizar nenhuma ação adicional, 
+    # então usamos a instrução continue para pular para a próxima iteração do loop, 
+    # ignorando o restante do código dentro do loop para essa iteração específica.
     for newDistance in newDistances:
         if newDistance.node.id == currentNode.id:
             continue
@@ -68,10 +77,16 @@ while True:
         foundNode = False
         for distance in currentNode.distances:
             if newDistance.node.id == distance.node.id:
+                # Configuramos a variável foundNode como True para indicar que encontramos o nó correspondente na lista de distâncias existentes.
                 foundNode = True
+                # Verifica se a nova distância mais 1 (newDistance.distance + 1) é menor que a distância existente (distance.distance). 
+                # Se for, atualizamos a distância existente com o novo valor.
                 if newDistance.distance + 1 < distance.distance:
                     distance.distance = newDistance.distance + 1
-
+        # Após o loop for interior, verificamos o valor da variável foundNode. 
+        # Se foundNode for False, significa que não encontramos uma correspondência para a nova distância na lista de distâncias existentes. 
+        # Nesse caso, adicionamos uma nova instância da classe Distance à lista de distâncias existentes do nó atual (currentNode.distances). 
+        # Essa nova instância representa a nova distância recebida, incrementada em 1
         if not foundNode:
             currentNode.distances.append(classes.Distance(newDistance.node, newDistance.distance + 1))
 

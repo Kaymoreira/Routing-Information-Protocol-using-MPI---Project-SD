@@ -121,6 +121,10 @@ def convertDistancesToString(distances: list[classes.Distance]):
         res = res + dist
     return res
 
+# A função convertStringToDistances recebe dois argumentos: 
+# distances, uma string contendo as distâncias a serem convertidas, 
+# e topology, uma lista de objetos Node que representa a topologia da rede. 
+# Ela retorna uma lista de objetos Distance, representando as distâncias convertidas.
 def convertStringToDistances(distances: str, topology: list[classes.Node]):
     """
     Converte uma string em uma lista de distâncias.
@@ -132,20 +136,32 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
     Returns:
         list[Distance]: A lista de distâncias convertidas.
     """
+    # objectStarted é uma flag que indica se o início de um objeto de distância foi encontrado. 
+    # variablePointer é um contador usado para acompanhar qual variável está sendo preenchida (nó ou distância). 
+    # currVariableValue é uma variável temporária para armazenar o valor atual sendo construído.
     objectStarted = False
     variablePointer = 0
     currVariableValue = ''
 
+    # node e distance são variáveis usadas para armazenar os valores do nó e da distância atualmente sendo extraídos da string.
     node = ""
     distance = ""
 
+    # res é uma lista vazia que armazenará as distâncias convertidas.
     res = []
 
+    # Aqui está o processo de conversão propriamente dito. 
+    # Percorremos cada caractere da string distances usando um loop for.
     for char in distances:
+        # Se encontramos um caractere $, significa que estamos iniciando ou encerrando um objeto de distância.
         if(char == '$'):
+            # Se objectStarted for True, isso indica que encontramos o final de um objeto de distância. 
+            # Nesse caso, armazenamos os valores do nó e da distância extraídos nas variáveis correspondentes.
             if(objectStarted):
+                # Em seguida, procuramos o objeto Node correspondente na topology usando o ID do nó extraído da string (node)
                 if(variablePointer == 0):
                     node += currVariableValue
+                # Quando encontramos o nó correspondente, criamos uma instância da classe Distance com o nó e a distância convertida (convertida para inteiro usando int(distance)
                 elif(variablePointer == 1):
                     distance += currVariableValue
 
@@ -157,6 +173,7 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
                         
                 res.append(classes.Distance(myNode, int(distance)))
 
+                # einiciamos as variáveis relacionadas ao objeto de distância (objectStarted, node, distance, variablePointer, currVariableValue) para preparar a próxima iteração.
                 objectStarted = False
                 node = ""
                 distance = ""
@@ -165,7 +182,9 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
             else: 
                 objectStarted = True
             continue
-
+        
+        # Se encontramos uma vírgula (,) e objectStarted for True, isso indica que estamos lendo a distância atual. 
+        # Dependendo do valor de variablePointer, adicionamos o valor atual à variável node ou distance.
         if(char == ','):
             if(variablePointer == 0):
                 node += currVariableValue
@@ -175,10 +194,15 @@ def convertStringToDistances(distances: str, topology: list[classes.Node]):
             variablePointer = variablePointer + 1
             currVariableValue = ''
             continue
-
+        
+        # No final, verificamos se objectStarted é True, o que significa que chegamos ao final da string, 
+        # mas não encontramos o caractere $ de fechamento para o último objeto de distância.
+        # Nesse caso, o último valor construído em currVariableValue seria perdido. 
+        # Portanto, adicionamos o valor final à variável correspondente (node ou distance)
         if(objectStarted): 
             currVariableValue += char
 
+    # Retornamos a lista res, que contém as distâncias convertidas
     return res
 
 def sendDistancesToNeighbors(neighbors: list[classes.Neighbor], distances: list[classes.Distance], comm):
@@ -190,10 +214,21 @@ def sendDistancesToNeighbors(neighbors: list[classes.Neighbor], distances: list[
         distances (list[Distance]): A lista de distâncias.
         comm: O objeto de comunicação MPI.
     """
+    # Aqui, percorremos cada vizinho na lista neighbors. 
+    # Para cada vizinho, verificamos se o atributo pointed do vizinho é True, 
+    # indicando que o vizinho deve receber as distâncias.
+    # Dentro do bloco condicional, usamos o objeto de comunicação MPI comm para enviar as distâncias para o vizinho específico. 
+    # Chamamos a função send() do objeto comm e passamos os seguintes argumentos: 
+    # obj, que é o objeto a ser enviado (nesse caso, as distâncias convertidas em uma string usando convertDistancesToString(distances)), 
+    # e dest, que é o ID do nó vizinho (neighbor.node.id).
     for neighbor in neighbors:
         if(neighbor.pointed):
             comm.send(obj=convertDistancesToString(distances), dest=neighbor.node.id)
 
+# A função getCurrentNode recebe dois argumentos: 
+# topology, uma lista de objetos Node que representa a topologia da rede, 
+# e rank, um número inteiro que representa o rank do nó atual. 
+# Ela retorna o nó atual com base no rank.
 def getCurrentNode(topology: list[classes.Node], rank: int):
     """
     Obtém o nó atual com base no rank.
@@ -205,6 +240,11 @@ def getCurrentNode(topology: list[classes.Node], rank: int):
     Returns:
         Node: O nó atual.
     """
+    # Inicializamos a variável res com o valor None. 
+    # Essa variável será usada para armazenar o nó atual.
+    # Aqui, percorremos cada nó na lista topology. 
+    # Para cada nó, verificamos se o ID do nó (node.id) é igual ao rank fornecido. 
+    # Se encontrarmos um nó com o ID correspondente ao rank, atribuímos esse nó à variável res.
     res = None
     for node in topology:
         if(node.id == rank):
